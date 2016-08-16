@@ -26,3 +26,12 @@ This corresponds to the function BeEqualErrors
 func (tester Tester) BeEqualErrors(expected, got error, message string) bool {
 	return BeEqualErrors(tester.T, expected, got, message)
 }
+
+/*
+BeNoError checks whether got is set, triggering an error on the Tester's T if it is non-nil.
+
+This corresponds to the function BeNoError
+*/
+func (tester Tester) BeNoError(got error, message string) bool {
+	return BeNoError(tester.T, got, message)
+}

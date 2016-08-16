@@ -102,6 +102,44 @@ func TestBeEqualErrors(t *testing.T) {
 	}
 }
 
+var beNoErrorTest = []struct {
+	name       string
+	got        error
+	message    string
+	shouldPass bool
+	format     string
+}{
+	{
+		name:       "No error exists",
+		shouldPass: true,
+	},
+	{
+		name:       "Error exists",
+		got:        errors.New("Message"),
+		shouldPass: false,
+		format:     "%s: error: %s",
+	},
+}
+
+func TestBeNoError(t *testing.T) {
+	for _, test := range beNoErrorTest {
+		m := &MockTesting{}
+		tester := Tester{
+			T: m,
+		}
+		result := tester.BeNoError(test.got, test.message)
+		if test.shouldPass && !result {
+			t.Errorf("%s: Expected check would pass.", test.name)
+		} else if !test.shouldPass && result {
+			t.Error("%s: Expected check would not pass.", test.name)
+		}
+
+		if test.format != m.format {
+			t.Errorf("%s: Incorrect error format. Expected '%v', got '%v'. errorCalled=%v", test.name, test.format, m.format, m.errorCalled)
+		}
+	}
+}
+
 type MockTesting struct {
 	errorCalled bool
 	format      string

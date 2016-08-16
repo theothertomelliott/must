@@ -35,6 +35,19 @@ func BeEqualErrors(t TestingT, expected, got error, message string) bool {
 	return true
 }
 
+/*
+BeNoError checks whether or not the got value is an error.
+
+The return value will be true if got is nil.
+*/
+func BeNoError(t TestingT, got error, message string) bool {
+	if got == nil {
+		return true
+	}
+	t.Errorf("%s: error: %s", message, got.Error())
+	return false
+}
+
 func getErrMessage(err error) string {
 	if err != nil {
 		return err.Error()
