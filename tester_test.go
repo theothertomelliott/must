@@ -2,6 +2,7 @@ package must
 
 import (
 	"errors"
+	"reflect"
 	"testing"
 )
 
@@ -19,6 +20,7 @@ var beEqualTests = []struct {
 		got:        "string2",
 		shouldPass: false,
 		format:     "%s: diff: (-got +want)\n%s",
+		message:    "Message1",
 	},
 	{
 		name:       "Matching strings",
@@ -32,6 +34,7 @@ var beEqualTests = []struct {
 		got:        []string{"string3", "string4"},
 		shouldPass: false,
 		format:     "%s: diff: (-got +want)\n%s",
+		message:    "Message2",
 	},
 	{
 		name:       "Matching arrays",
@@ -49,13 +52,90 @@ func TestBeEqual(t *testing.T) {
 		}
 		result := tester.BeEqual(test.expected, test.got, test.message)
 		if test.shouldPass && !result {
-			t.Errorf("%s: Expected check would pass.", test.name)
+			t.Errorf("%s: Check did not pass as expected.", test.name)
 		} else if !test.shouldPass && result {
-			t.Errorf("%s: Expected check would not pass.", test.name)
+			t.Errorf("%s: Check did not fail as expected", test.name)
+		} else {
+			if test.format != m.format {
+				t.Errorf("%s: Incorrect error format. Expected '%v', got '%v'. errorCalled=%v", test.name, test.format, m.format, m.errorCalled)
+			}
+
+			if !result {
+				if len(m.args) < 2 {
+					t.Errorf("%s: Expected 2 error args, got %d", test.name, len(m.args))
+				}
+
+				if test.message != m.args[0] {
+					t.Errorf("%s: Incorrect message. Expected '%v', got '%v'", test.name, test.message, m.args[0])
+				}
+			}
+		}
+	}
+}
+
+func TestBeEqualCustomCompare(t *testing.T) {
+	for _, test := range beEqualTests {
+		m := &MockTesting{}
+		tester := Tester{
+			T: m,
+			InterfaceComparison: func(expected, got interface{}) bool {
+				if !reflect.DeepEqual(expected, test.expected) {
+					t.Errorf("Wrong expected sent to compare")
+				}
+				if !reflect.DeepEqual(got, test.got) {
+					t.Errorf("Wrong got sent to compare")
+				}
+				return true
+			},
+		}
+		if !tester.BeEqual(test.expected, test.got, test.message) {
+			t.Errorf("Forced true comparison did not suceed as expected")
 		}
 
-		if test.format != m.format {
-			t.Errorf("%s: Incorrect error format. Expected '%v', got '%v'. errorCalled=%v", test.name, test.format, m.format, m.errorCalled)
+		tester = Tester{
+			T: m,
+			InterfaceComparison: func(expected, got interface{}) bool {
+				return false
+			},
+		}
+		if tester.BeEqual(test.expected, test.got, test.message) {
+			t.Errorf("Forced false comparison did not fail as expected")
+		}
+	}
+}
+
+func TestBeEqualCustomDiff(t *testing.T) {
+	for _, test := range beEqualTests {
+		m := &MockTesting{}
+		tester := Tester{
+			T: m,
+			InterfaceDiff: func(expected, got interface{}) string {
+				return "forced diff"
+			},
+		}
+		result := tester.BeEqual(test.expected, test.got, test.message)
+		if test.shouldPass && !result {
+			t.Errorf("%s: Check did not pass as expected.", test.name)
+		} else if !test.shouldPass && result {
+			t.Errorf("%s: Check did not fail as expected", test.name)
+		} else {
+			if test.format != m.format {
+				t.Errorf("%s: Incorrect error format. Expected '%v', got '%v'. errorCalled=%v", test.name, test.format, m.format, m.errorCalled)
+			}
+
+			if !result {
+				if len(m.args) < 2 {
+					t.Errorf("%s: Expected 2 error args, got %d", test.name, len(m.args))
+				}
+
+				if test.message != m.args[0] {
+					t.Errorf("%s: Incorrect message. Expected '%v', got '%v'", test.name, test.message, m.args[0])
+				}
+
+				if "forced diff" != m.args[1] {
+					t.Errorf("%s: Custom diff func was not used, got '%v'", test.name, m.args[1])
+				}
+			}
 		}
 	}
 }
