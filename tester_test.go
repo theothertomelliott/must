@@ -131,7 +131,7 @@ func TestBeNoError(t *testing.T) {
 		if test.shouldPass && !result {
 			t.Errorf("%s: Expected check would pass.", test.name)
 		} else if !test.shouldPass && result {
-			t.Error("%s: Expected check would not pass.", test.name)
+			t.Errorf("%s: Expected check would not pass.", test.name)
 		}
 
 		if test.format != m.format {
