@@ -33,3 +33,13 @@ func BeNoError(t TestingT, got error, message string) bool {
 	mt := Tester{T: t}
 	return mt.BeNoError(got, message)
 }
+
+/*
+BeSameLength checks whether the two inputs have the same length according to the len function.
+
+The return value will be true if their lengths match.
+*/
+func BeSameLength(t TestingT, expected, got interface{}, message string) bool {
+	mt := Tester{T: t}
+	return mt.BeSameLength(expected, got, message)
+}

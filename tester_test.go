@@ -220,6 +220,95 @@ func TestBeNoError(t *testing.T) {
 	}
 }
 
+var beSameLengthTests = []struct {
+	name       string
+	expected   interface{}
+	got        interface{}
+	message    string
+	shouldPass bool
+	format     string
+}{
+	{
+		name:       "Strings, same length",
+		expected:   "abcdefg",
+		got:        "hijklmn",
+		shouldPass: true,
+	},
+	{
+		name:       "Strings, different length",
+		expected:   "abc",
+		got:        "defg",
+		shouldPass: false,
+		format:     "%s: expected length %d, got length %d",
+	},
+	{
+		name:       "Arrays, same length",
+		expected:   []int{1, 2, 3},
+		got:        []int{4, 5, 6},
+		shouldPass: true,
+	},
+	{
+		name:       "Arrays, different length",
+		expected:   []int{1, 2, 3, 7},
+		got:        []int{8},
+		shouldPass: false,
+		format:     "%s: expected length %d, got length %d",
+	},
+	{
+		name:       "String and string pointer, same length",
+		expected:   stringToPointer("abcdefg"),
+		got:        "hijklmn",
+		shouldPass: true,
+	},
+	{
+		name:       "String and string pointer, different length",
+		expected:   "abc",
+		got:        stringToPointer("defg"),
+		shouldPass: false,
+		format:     "%s: expected length %d, got length %d",
+	},
+	{
+		name:       "String and struct",
+		expected:   "abc",
+		got:        struct{ content string }{content: "test"},
+		shouldPass: false,
+		format:     "%s: could not test lengths - %v",
+	},
+}
+
+func TestBeSameLength(t *testing.T) {
+	for _, test := range beSameLengthTests {
+		m := &MockTesting{}
+		tester := Tester{
+			T: m,
+		}
+		result := tester.BeSameLength(test.expected, test.got, test.message)
+		if test.shouldPass && !result {
+			t.Errorf("%s: Check did not pass as expected.", test.name)
+		} else if !test.shouldPass && result {
+			t.Errorf("%s: Check did not fail as expected", test.name)
+		}
+
+		if test.format != m.format {
+			t.Errorf("%s: Incorrect error format. Expected '%v', got '%v'. args=%v, errorCalled=%v", test.name, test.format, m.format, m.args, m.errorCalled)
+		}
+
+		if !result {
+			if len(m.args) < 2 {
+				t.Errorf("%s: Expected at least 2 error args, got %d", test.name, len(m.args))
+			}
+
+			if test.message != m.args[0] {
+				t.Errorf("%s: Incorrect message. Expected '%v', got '%v'", test.name, test.message, m.args)
+			}
+		}
+	}
+}
+
+func stringToPointer(val string) *string {
+	return &val
+}
+
 type MockTesting struct {
 	errorCalled bool
 	format      string

@@ -1,6 +1,12 @@
 package must
 
-import "github.com/kylelemons/godebug/pretty"
+import (
+	"errors"
+	"fmt"
+	"reflect"
+
+	"github.com/kylelemons/godebug/pretty"
+)
 
 var _ MustTester = Tester{}
 
@@ -53,6 +59,53 @@ func (tester Tester) BeNoError(got error, message string) bool {
 	}
 	tester.T.Errorf("%s: error: %s", message, got.Error())
 	return false
+}
+
+/*
+BeSameLength checks whether the two inputs have the same length according to the len function.
+
+This corresponds to the function BeSameLength
+*/
+func (tester Tester) BeSameLength(expected, got interface{}, message string) bool {
+
+	lenExpected, err := lenterface(expected)
+	if err != nil {
+		tester.T.Errorf("%s: could not test lengths - %v", message, err)
+		return false
+	}
+	lenGot, err := lenterface(got)
+	if err != nil {
+		tester.T.Errorf("%s: could not test lengths - %v", message, err)
+		return false
+	}
+
+	if lenExpected == lenGot {
+		return true
+	}
+	tester.T.Errorf("%s: expected length %d, got length %d", message, lenExpected, lenGot)
+	return false
+}
+
+func lenterface(val interface{}) (int, error) {
+	kind := reflect.TypeOf(val).Kind()
+	switch kind {
+	case reflect.Slice, reflect.Map, reflect.String, reflect.Chan, reflect.Array:
+		s := reflect.ValueOf(val)
+		return s.Len(), nil
+	case reflect.Ptr:
+		return lenterfacePtr(reflect.ValueOf(val))
+	}
+	return 0, errors.New(fmt.Sprintf("cannot get the length of type: %v", kind))
+}
+
+func lenterfacePtr(val reflect.Value) (int, error) {
+	i := reflect.Indirect(val)
+	switch i.Kind() {
+	case reflect.Slice, reflect.Map, reflect.String, reflect.Chan, reflect.Array:
+		return i.Len(), nil
+
+	}
+	return 0, errors.New(fmt.Sprintf("cannot get the length of a pointer to type: %v", i.Kind()))
 }
 
 func (tester Tester) equal(expected, got interface{}) bool {

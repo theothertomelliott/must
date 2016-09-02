@@ -9,4 +9,5 @@ type TestingT interface {
 type MustTester interface {
 	BeEqual(expected, got interface{}, message string) bool
 	BeEqualErrors(expected, got error, message string) bool
+	BeSameLength(expected, got interface{}, message string) bool
 }
