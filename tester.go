@@ -26,7 +26,7 @@ This corresponds to the function BeEqual
 */
 func (tester Tester) BeEqual(expected, got interface{}, message string) bool {
 	if !tester.equal(expected, got) {
-		tester.T.Errorf("%s: diff: (-got +want)\n%s", message, tester.diff(expected, got))
+		tester.T.Errorf("%s: diff\n%s", message, tester.diff(expected, got))
 		return false
 	}
 	return true
@@ -119,7 +119,7 @@ func (tester Tester) diff(expected, got interface{}) string {
 	if tester.InterfaceDiff != nil {
 		return tester.InterfaceDiff(expected, got)
 	}
-	return pretty.Compare(expected, got)
+	return fmt.Sprintf("(- expected, + got)\n%v", pretty.Compare(expected, got))
 }
 
 func getErrMessage(err error) string {

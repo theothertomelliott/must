@@ -19,7 +19,7 @@ var beEqualTests = []struct {
 		expected:   "string1",
 		got:        "string2",
 		shouldPass: false,
-		format:     "%s: diff: (-got +want)\n%s",
+		format:     "%s: diff\n%s",
 		message:    "Message1",
 	},
 	{
@@ -33,7 +33,7 @@ var beEqualTests = []struct {
 		expected:   []string{"string1", "string2"},
 		got:        []string{"string3", "string4"},
 		shouldPass: false,
-		format:     "%s: diff: (-got +want)\n%s",
+		format:     "%s: diff\n%s",
 		message:    "Message2",
 	},
 	{
