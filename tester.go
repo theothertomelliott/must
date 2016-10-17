@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"reflect"
 
+	"github.com/kylelemons/godebug/diff"
 	"github.com/kylelemons/godebug/pretty"
 )
 
@@ -119,6 +120,14 @@ func (tester Tester) diff(expected, got interface{}) string {
 	if tester.InterfaceDiff != nil {
 		return tester.InterfaceDiff(expected, got)
 	}
+
+	// Do string diff if strings. Compare does not handle multiline strings well
+	e, eok := expected.(string)
+	g, gok := got.(string)
+	if eok && gok {
+		return fmt.Sprintf("(- expected, + got)\n%v", diff.Diff(e, g))
+	}
+
 	return fmt.Sprintf("(- expected, + got)\n%v", pretty.Compare(expected, got))
 }
 
