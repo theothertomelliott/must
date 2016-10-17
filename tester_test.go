@@ -29,6 +29,20 @@ var beEqualTests = []struct {
 		shouldPass: true,
 	},
 	{
+		name:       "Different multiline strings",
+		expected:   "string1\nstring2",
+		got:        "string2\nstring1",
+		shouldPass: false,
+		format:     "%s: diff\n%s",
+		message:    "Message",
+	},
+	{
+		name:       "Matching multiline strings",
+		expected:   "string1\nstring2",
+		got:        "string1\nstring2",
+		shouldPass: true,
+	},
+	{
 		name:       "Different arrays",
 		expected:   []string{"string1", "string2"},
 		got:        []string{"string3", "string4"},
