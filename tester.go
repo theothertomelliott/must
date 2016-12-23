@@ -1,7 +1,6 @@
 package must
 
 import (
-	"errors"
 	"fmt"
 	"reflect"
 
@@ -25,9 +24,9 @@ BeEqual compares the expected and got interfaces, triggering an error on the Tes
 
 This corresponds to the function BeEqual
 */
-func (tester Tester) BeEqual(expected, got interface{}, message string) bool {
+func (tester Tester) BeEqual(expected, got interface{}, a ...interface{}) bool {
 	if !tester.equal(expected, got) {
-		tester.T.Errorf("%s: diff\n%s", message, tester.diff(expected, got))
+		tester.formattedError("diff\n%s", a, tester.diff(expected, got))
 		return false
 	}
 	return true
@@ -38,12 +37,12 @@ BeEqualErrors compares the expected and got errors, triggering an error on the T
 
 This corresponds to the function BeEqualErrors
 */
-func (tester Tester) BeEqualErrors(expected, got error, message string) bool {
+func (tester Tester) BeEqualErrors(expected, got error, a ...interface{}) bool {
 	if expected == nil && got == nil {
 		return true
 	}
 	if (expected == nil || got == nil) || expected.Error() != got.Error() {
-		tester.T.Errorf("%v\nExpected '%v', got '%v'", message, getErrMessage(expected), getErrMessage(got))
+		tester.formattedError("Expected '%v', got '%v'", a, getErrMessage(expected), getErrMessage(got))
 		return false
 	}
 	return true
@@ -54,11 +53,11 @@ BeNoError checks whether got is set, triggering an error on the Tester's T if it
 
 This corresponds to the function BeNoError
 */
-func (tester Tester) BeNoError(got error, message string) bool {
+func (tester Tester) BeNoError(got error, a ...interface{}) bool {
 	if got == nil {
 		return true
 	}
-	tester.T.Errorf("%s: error: %s", message, got.Error())
+	tester.formattedError("error: %s", a, got.Error())
 	return false
 }
 
@@ -67,23 +66,22 @@ BeSameLength checks whether the two inputs have the same length according to the
 
 This corresponds to the function BeSameLength
 */
-func (tester Tester) BeSameLength(expected, got interface{}, message string) bool {
-
+func (tester Tester) BeSameLength(expected, got interface{}, a ...interface{}) bool {
 	lenExpected, err := lenterface(expected)
 	if err != nil {
-		tester.T.Errorf("%s: could not test lengths - %v", message, err)
+		tester.formattedError("could not test lengths - %v", a, err)
 		return false
 	}
 	lenGot, err := lenterface(got)
 	if err != nil {
-		tester.T.Errorf("%s: could not test lengths - %v", message, err)
+		tester.formattedError("could not test lengths - %v", a, err)
 		return false
 	}
 
 	if lenExpected == lenGot {
 		return true
 	}
-	tester.T.Errorf("%s: expected length %d, got length %d", message, lenExpected, lenGot)
+	tester.formattedError("expected length %d, got length %d", a, lenExpected, lenGot)
 	return false
 }
 
@@ -96,7 +94,7 @@ func lenterface(val interface{}) (int, error) {
 	case reflect.Ptr:
 		return lenterfacePtr(reflect.ValueOf(val))
 	}
-	return 0, errors.New(fmt.Sprintf("cannot get the length of type: %v", kind))
+	return 0, fmt.Errorf("cannot get the length of type: %v", kind)
 }
 
 func lenterfacePtr(val reflect.Value) (int, error) {
@@ -104,9 +102,8 @@ func lenterfacePtr(val reflect.Value) (int, error) {
 	switch i.Kind() {
 	case reflect.Slice, reflect.Map, reflect.String, reflect.Chan, reflect.Array:
 		return i.Len(), nil
-
 	}
-	return 0, errors.New(fmt.Sprintf("cannot get the length of a pointer to type: %v", i.Kind()))
+	return 0, fmt.Errorf("cannot get the length of a pointer to type: %v", i.Kind())
 }
 
 func (tester Tester) equal(expected, got interface{}) bool {
@@ -129,6 +126,17 @@ func (tester Tester) diff(expected, got interface{}) string {
 	}
 
 	return fmt.Sprintf("(- expected, + got)\n%v", pretty.Compare(expected, got))
+}
+
+func (tester Tester) formattedError(format string, a []interface{}, following ...interface{}) {
+	if len(a) > 0 {
+		var args []interface{}
+		args = append(args, fmt.Sprint(a...))
+		args = append(args, following...)
+		tester.T.Errorf("%v: "+format, args...)
+	} else {
+		tester.T.Errorf(format, following...)
+	}
 }
 
 func getErrMessage(err error) string {
