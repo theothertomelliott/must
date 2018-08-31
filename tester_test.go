@@ -376,3 +376,7 @@ func (m *MockTesting) Errorf(format string, args ...interface{}) {
 	m.format = format
 	m.args = args
 }
+
+func (m *MockTesting) Helper() {
+	// Nothing to do
+}
