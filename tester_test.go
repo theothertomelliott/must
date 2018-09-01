@@ -267,6 +267,131 @@ func TestBeNoError(t *testing.T) {
 	}
 }
 
+func TestBeError(t *testing.T) {
+	var tests = []struct {
+		name       string
+		got        error
+		params     []interface{}
+		shouldPass bool
+		format     string
+	}{
+		{
+			name:       "input is error",
+			got:        errors.New("test error"),
+			shouldPass: true,
+		},
+		{
+			name:       "input is nil no params",
+			shouldPass: false,
+			format:     "expected an error, but got nil",
+		},
+		{
+			name:       "input is nil with params",
+			shouldPass: false,
+			params:     []interface{}{"param1", 2, true, 4.0},
+			format:     "%v: expected an error, but got nil",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			m := &MockTesting{}
+			tester := Tester{
+				T: m,
+			}
+			result := tester.BeError(test.got, test.params...)
+			checkResults(t, test.shouldPass, result, test.format, m)
+		})
+	}
+}
+
+func TestBeErrorIf(t *testing.T) {
+	var tests = []struct {
+		name          string
+		got           error
+		errorExpected bool
+		params        []interface{}
+		shouldPass    bool
+		format        string
+	}{
+		{
+			name:          "expected error got error",
+			got:           errors.New("test error"),
+			errorExpected: true,
+			shouldPass:    true,
+		},
+		{
+			name:       "expected nil and got nil",
+			shouldPass: true,
+		},
+		{
+			name:   "expected nil got error no params",
+			got:    errors.New("test error"),
+			format: "error: %s",
+		},
+		{
+			name:   "expected nil got error with params",
+			got:    errors.New("test error"),
+			params: []interface{}{"param1", 2, true, 4.0},
+			format: "%v: error: %s",
+		},
+		{
+			name:          "expected error got nil no params",
+			errorExpected: true,
+			format:        "expected an error, but got nil",
+		},
+		{
+			name:          "expected error got nil with params",
+			errorExpected: true,
+			params:        []interface{}{"param1", 2, true, 4.0},
+			format:        "%v: expected an error, but got nil",
+		},
+	}
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			m := &MockTesting{}
+			tester := Tester{
+				T: m,
+			}
+			result := tester.BeErrorIf(test.errorExpected, test.got, test.params...)
+			checkResults(t, test.shouldPass, result, test.format, m)
+		})
+	}
+}
+
+func checkResults(
+	t *testing.T,
+	expectedResult,
+	actualResult bool,
+	expectedFormat string,
+	mockT *MockTesting,
+) {
+	t.Helper()
+
+	if actualResult != expectedResult {
+		t.Errorf(
+			"result not as expected: expected: %v; got: %v",
+			expectedResult,
+			actualResult,
+		)
+	}
+
+	if mockT.errorCalled == expectedResult {
+		t.Errorf(
+			"errorCalled not as expected: expected: %v; got: %v",
+			!expectedResult,
+			mockT.errorCalled,
+		)
+	}
+
+	if expectedFormat != mockT.format {
+		t.Errorf(
+			"error format not as expected: expected '%v'; got '%v'",
+			expectedFormat,
+			mockT.format,
+		)
+	}
+}
+
 func TestBeSameLength(t *testing.T) {
 	var tests = []struct {
 		name       string

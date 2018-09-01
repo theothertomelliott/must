@@ -89,6 +89,26 @@ func (tester Tester) BeSameLength(expected, got interface{}, a ...interface{}) b
 	return false
 }
 
+// BeError checks that the received error is not nil
+func (tester Tester) BeError(got error, a ...interface{}) bool {
+	tester.T.Helper()
+	if got != nil {
+		return true
+	}
+	tester.formattedError("expected an error, but got nil", a)
+	return false
+}
+
+// BeErrorIf checks that the received error corresponds to the errorExpected flag
+func (tester Tester) BeErrorIf(errorExpected bool, got error, a ...interface{}) bool {
+	tester.T.Helper()
+	if errorExpected {
+		return tester.BeError(got, a...)
+	}
+
+	return tester.BeNoError(got, a...)
+}
+
 func lenterface(val interface{}) (int, error) {
 	kind := reflect.TypeOf(val).Kind()
 	switch kind {
