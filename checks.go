@@ -55,3 +55,30 @@ func BeSameLength(t TestingT, expected, got interface{}, a ...interface{}) bool 
 	mt := Tester{T: t}
 	return mt.BeSameLength(expected, got, a...)
 }
+
+/*
+BeError checks that the provided error is not nil
+
+The return value will be true iff error is not nil
+
+Additional output for any error message can be provided as additional parameters, as with fmt.Print.
+*/
+func BeError(t TestingT, got error, a ...interface{}) bool {
+	t.Helper()
+	mt := Tester{T: t}
+	return mt.BeError(got, a...)
+}
+
+/*
+BeErrorIf checks that the errorExpected flag corresponds to the provided error: error should be
+nil iff errorExpected flag is false
+
+The return value will be true iff error value corresponds to the errorExpected flag
+
+Additional output for any error message can be provided as additional parameters, as with fmt.Print.
+*/
+func BeErrorIf(t TestingT, errorExpected bool, got error, a ...interface{}) bool {
+	t.Helper()
+	mt := Tester{T: t}
+	return mt.BeErrorIf(errorExpected, got, a...)
+}

@@ -11,5 +11,7 @@ type MustTester interface {
 	BeEqual(expected, got interface{}, a ...interface{}) bool
 	BeEqualErrors(expected, got error, a ...interface{}) bool
 	BeNoError(got error, a ...interface{}) bool
+	BeError(got error, a ...interface{}) bool
+	BeErrorIf(errorExpected bool, got error, a ...interface{}) bool
 	BeSameLength(expected, got interface{}, a ...interface{}) bool
 }
