@@ -25,6 +25,7 @@ BeEqual compares the expected and got interfaces, triggering an error on the Tes
 This corresponds to the function BeEqual
 */
 func (tester Tester) BeEqual(expected, got interface{}, a ...interface{}) bool {
+	tester.T.Helper()
 	if !tester.equal(expected, got) {
 		tester.formattedError("diff\n%s", a, tester.diff(expected, got))
 		return false
@@ -38,6 +39,7 @@ BeEqualErrors compares the expected and got errors, triggering an error on the T
 This corresponds to the function BeEqualErrors
 */
 func (tester Tester) BeEqualErrors(expected, got error, a ...interface{}) bool {
+	tester.T.Helper()
 	if expected == nil && got == nil {
 		return true
 	}
@@ -54,6 +56,7 @@ BeNoError checks whether got is set, triggering an error on the Tester's T if it
 This corresponds to the function BeNoError
 */
 func (tester Tester) BeNoError(got error, a ...interface{}) bool {
+	tester.T.Helper()
 	if got == nil {
 		return true
 	}
@@ -67,6 +70,7 @@ BeSameLength checks whether the two inputs have the same length according to the
 This corresponds to the function BeSameLength
 */
 func (tester Tester) BeSameLength(expected, got interface{}, a ...interface{}) bool {
+	tester.T.Helper()
 	lenExpected, err := lenterface(expected)
 	if err != nil {
 		tester.formattedError("could not test lengths - %v", a, err)
@@ -129,6 +133,7 @@ func (tester Tester) diff(expected, got interface{}) string {
 }
 
 func (tester Tester) formattedError(format string, a []interface{}, following ...interface{}) {
+	tester.T.Helper()
 	if len(a) > 0 {
 		var args []interface{}
 		args = append(args, fmt.Sprint(a...))

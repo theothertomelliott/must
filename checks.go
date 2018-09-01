@@ -9,6 +9,7 @@ The return value will be true if the interfaces are equal.
 Additional output for any error message can be provided as additional parameters, as with fmt.Print.
 */
 func BeEqual(t TestingT, expected, got interface{}, a ...interface{}) bool {
+	t.Helper()
 	mt := Tester{T: t}
 	return mt.BeEqual(expected, got, a...)
 }
@@ -24,6 +25,7 @@ Should the errors not be considered equal, an error will be raised in t includin
 Additional output for any error message can be provided as additional parameters, as with fmt.Print.
 */
 func BeEqualErrors(t TestingT, expected, got error, a ...interface{}) bool {
+	t.Helper()
 	mt := Tester{T: t}
 	return mt.BeEqualErrors(expected, got, a...)
 }
@@ -36,6 +38,7 @@ The return value will be true if got is nil.
 Additional output for any error message can be provided as additional parameters, as with fmt.Print.
 */
 func BeNoError(t TestingT, got error, a ...interface{}) bool {
+	t.Helper()
 	mt := Tester{T: t}
 	return mt.BeNoError(got, a...)
 }
@@ -48,6 +51,7 @@ The return value will be true if their lengths match.
 Additional output for any error message can be provided as additional parameters, as with fmt.Print.
 */
 func BeSameLength(t TestingT, expected, got interface{}, a ...interface{}) bool {
+	t.Helper()
 	mt := Tester{T: t}
 	return mt.BeSameLength(expected, got, a...)
 }
